@@ -19,7 +19,7 @@ with open('notifications_rest/__init__.py', 'rb') as f:
 setup(
     name='django-notifications-rest',
     version=version,
-    description='A django notifications package exposed by Rest',
+    description='A django notifications package exposed through API Rest',
     long_description=open('README.md').read(),
     author='Yusniel Hidalgo Delgado',
     author_email='yhidalgo86@gmail.com',

@@ -1,7 +1,7 @@
 ``django-notifications-rest`` Documentation
 =======================================
 
-`django-notifications-rest <https://github.com/yhdelgado/django-notifications-rest>`
+[django-notifications-rest](https://github.com/yhdelgado/django-notifications-rest) provides rest endpoints for ``django-notifications-hq``.
 
 Requirements
 ============
