@@ -1,7 +1,7 @@
 ``django-notifications-rest`` Documentation
 =======================================
 
-`django-notifications-rest <https://github.com/yhdelgado/django-notifications-rest>`_ _
+`django-notifications-rest <https://github.com/yhdelgado/django-notifications-rest>`
 
 Requirements
 ============
