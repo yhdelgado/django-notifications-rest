@@ -25,7 +25,11 @@ setup(
     author_email='yhidalgo86@gmail.com',
     url='https://github.com/yhdelgado/django-notifications-rest',
     include_package_data=True,
-    #packages=setuptools.find_packages(),
+    exclude_package_data={
+        '': ['djangotools','django_notifications_rest.egg-info']
+    },
+    packages=setuptools.find_packages(exclude=['djangotools']),
+    python_requires=">=3.5",
     install_requires=[
         'django>=2.2',
         'django-model-utils>=3.1.0',
@@ -35,9 +39,6 @@ setup(
         'pytz',
         'swapper'
     ],
-    package_data={
-
-    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
@@ -48,6 +49,7 @@ setup(
         'Framework :: Django',
         'Framework :: Django :: 2.2',
         'Framework :: Django :: 3.0',
+        'Framework :: Django :: 3.1',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
