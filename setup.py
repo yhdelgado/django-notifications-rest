@@ -25,8 +25,9 @@ setup(
     author_email='yhidalgo86@gmail.com',
     url='https://github.com/yhdelgado/django-notifications-rest',
     include_package_data=True,
+    long_description_content_type="text/markdown",
     exclude_package_data={
-        '': ['djangotools','django_notifications_rest.egg-info']
+        '': ['djangotools', 'django_notifications_rest.egg-info']
     },
     packages=setuptools.find_packages(exclude=['djangotools']),
     python_requires=">=3.5",
