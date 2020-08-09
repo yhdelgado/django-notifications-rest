@@ -16,7 +16,7 @@ Installation
 
 Installation using ``pip``. You need to manually install the required ``django-notifications-hq`` and ``djangorestframework`` packages.
     
-    $ pip install django-notifications-hq
+    $ pip install django-notifications-rest
 
 or get it from source
 
