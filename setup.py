@@ -31,13 +31,6 @@ setup(
     packages=setuptools.find_packages(exclude=['djangotools']),
     python_requires=">=3.5",
     install_requires=[
-        'django>=2.2',
-        'django-model-utils>=3.1.0',
-        'djangorestframework',
-        'django-notifications-hq',
-        'jsonfield>=2.1.0',
-        'pytz',
-        'swapper'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
