@@ -1,0 +1,4 @@
+/djangotools/
+/notifications_rest/dist/
+/notifications_rest/django_notifications_rest.egg-info/
+/db.sqlite3
