@@ -1,4 +1,5 @@
 from django.urls import re_path as url
+from django.conf import settings
 from .views import *
 from rest_framework import routers
 
@@ -7,7 +8,6 @@ router.register('', NotificationViewSet)
 
 app_name = 'notifications_rest'
 urlpatterns = [
-    url(r'^add/', AddNotification.as_view(), name='add'),
     url(r'^all/', AllNotification.as_view({'get': 'list'}), name='all'),
     url(r'^unread/', UnreadNotificationsList.as_view({'get': 'list'}), name='unread'),
     url(r'^mark-all-as-read/$', MarkAllAsRead.as_view(), name='mark_all_as_read'),
@@ -18,3 +18,8 @@ urlpatterns = [
     url(r'^api/all_count/$', AllNotificationCount.as_view(), name='live_all_notification_count'),
     url(r'^api/unread_list/$', UnreadNotificationsList.as_view({'get': 'list'}), name='live_unread_notification_list'),
 ]
+
+if getattr(settings, 'NOTIFICATIONS_API_ALLOW_ADD', False):
+    urlpatternts += [
+        url(r'^add/', AddNotification.as_view(), name='add'),
+    ]
