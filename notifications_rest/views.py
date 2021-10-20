@@ -24,34 +24,38 @@ class MarkAllAsRead(APIView):
         return Response({'code': 'OK'}, status=status.HTTP_200_OK)
 
 
-class MarkAsRead(APIView):
+class NotificationMixin:
+    def get_obj(self, request, *args, **kwargs):
+        notification_id = kwargs.get('slug')
+        queryset = Notification.objects.filter(recipient=request.user)
+        return queryset.get(id=notification_id)
+
+
+class MarkAsRead(NotificationMixin, APIView):
     serializer_class = NotificationSerializer
 
     def get(self, request, *args, **kwargs):
-        notification_id = kwargs.get('slug')
-        notification_obj = Notification.objects.get(id=notification_id)
+        notification_obj = self.get_obj(request, *args, **kwargs)
         notification_obj.unread = False
         notification_obj.save()
         return Response({'code': 'OK'}, status=status.HTTP_200_OK)
 
 
-class MarkAsUnread(APIView):
+class MarkAsUnread(NotificationMixin, APIView):
     serializer_class = NotificationSerializer
 
     def get(self, request, *args, **kwargs):
-        notification_id = kwargs.get('slug')
-        notification_obj = Notification.objects.get(id=notification_id)
+        notification_obj = self.get_obj(request, *args, **kwargs)
         notification_obj.unread = True
         notification_obj.save()
         return Response({'code': 'OK'}, status=status.HTTP_200_OK)
 
 
-class Delete(APIView):
+class Delete(NotificationMixin, APIView):
     serializer_class = NotificationSerializer
 
     def delete(self, request, *args, **kwargs):
-        notification_id = kwargs.get('slug')
-        notification_obj = Notification.objects.get(id=notification_id)
+        notification_obj = self.get_obj(request, *args, **kwargs)
         notification_obj.delete()
         return Response({'code': 'OK'}, status=status.HTTP_200_OK)
 
