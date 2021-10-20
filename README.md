@@ -55,3 +55,9 @@ If the installed version of django>=3.1, then::
     ]
  
 To run schema migration, execute ``python manage.py migrate``.
+
+-------------------
+Additional options:
+-------------------
+
+The is also ``/add/`` API endpoint to add new notifications. Such endpoint might be considered security risk, as any user can add any notifications. For that reason, it must be manually enabled by setting ``NOTIFICATIONS_API_ALLOW_ADD=False``
