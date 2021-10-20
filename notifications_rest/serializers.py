@@ -43,6 +43,7 @@ class NotificationSerializer(ModelSerializer):
     public = serializers.BooleanField()
     deleted = serializers.BooleanField()
     emailed = serializers.BooleanField()
+    target = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     class Meta:
         model = Notification
