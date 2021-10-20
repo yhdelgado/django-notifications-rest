@@ -14,6 +14,10 @@ urlpatterns = [
     url(r'^mark-as-read/(?P<slug>\d+)/$', MarkAsRead.as_view(), name='mark_as_read'),
     url(r'^mark-as-unread/(?P<slug>\d+)/$', MarkAsUnread.as_view(), name='mark_as_unread'),
     url(r'^delete/(?P<slug>\d+)/$', Delete.as_view(), name='delete'),
+    url(r'^unread_count/$', UnreadNotificationCount.as_view(), name='unread_notification_count'),
+    url(r'^all_count/$', AllNotificationCount.as_view(), name='all_notification_count'),
+
+    # Deprecated
     url(r'^api/unread_count/$', UnreadNotificationCount.as_view(), name='live_unread_notification_count'),
     url(r'^api/all_count/$', AllNotificationCount.as_view(), name='live_all_notification_count'),
     url(r'^api/unread_list/$', UnreadNotificationsList.as_view({'get': 'list'}), name='live_unread_notification_list'),
