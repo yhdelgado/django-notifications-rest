@@ -107,3 +107,5 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
     ],
 }
+
+NOTIFICATIONS_API_ALLOW_ADD = True
