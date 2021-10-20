@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.contrib.contenttypes.models import ContentType
 from django.urls.exceptions import NoReverseMatch
 from notifications.models import Notification
 from rest_framework import status
@@ -66,11 +67,14 @@ class NotificationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(Notification.objects.filter(id=self.notification.id).exists())
 
-    def test_add_notification(self):
+    def test_add_notification_minimal(self):
         url = reverse("notifications_rest:add")
         data = {
             "recipient": {"id": self.user.id},
-            "actor": {"id": self.user.id},
+            "actor": {
+                "pk": self.user.id,
+                "content_type_id": ContentType.objects.get_for_model(self.user).id,
+            },
             "verb": "new",
             "description": "new notification",
             "unread": True,
@@ -78,6 +82,35 @@ class NotificationTests(APITestCase):
             "deleted": False,
             "level": "1",
             "emailed": False,
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["recipient"]["id"], self.user.id)
+        self.assertEqual(Notification.objects.count(), 2)
+
+    def test_add_notification_full(self):
+        url = reverse("notifications_rest:add")
+        data = {
+            "recipient": {"id": self.user.id},
+            "actor": {
+                "pk": self.user.id,
+                "content_type_id": ContentType.objects.get_for_model(self.user).id,
+            },
+            "verb": "new",
+            "description": "new notification",
+            "unread": True,
+            "public": False,
+            "deleted": False,
+            "level": "1",
+            "emailed": False,
+            "target": {
+                "pk": self.user.id,
+                "content_type_id": ContentType.objects.get_for_model(self.user).id,
+            },
+            "action_object": {
+                "pk": self.user.id,
+                "content_type_id": ContentType.objects.get_for_model(self.user).id,
+            },
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
