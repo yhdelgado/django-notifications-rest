@@ -1,18 +1,18 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status
-from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
 from rest_framework.generics import CreateAPIView
+from rest_framework.mixins import ListModelMixin
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 from .serializers import NotificationSerializer
 from notifications.models import Notification
 
 
-class UnreadNotificationsList(ViewSet):
+class UnreadNotificationsList(ListModelMixin, GenericViewSet):
     serializer_class = NotificationSerializer
 
-    def list(self, request, *args, **kwargs):
-        queryset = Notification.objects.filter(recipient_id=request.user.id, unread=True)
-        return Response(NotificationSerializer(queryset, many=True).data)
+    def get_queryset(self, *args, **kwargs):
+        return Notification.objects.filter(recipient_id=self.request.user.id, unread=True)
 
 
 class MarkAllAsRead(APIView):
@@ -64,12 +64,11 @@ class AddNotification(CreateAPIView):
         return response
 
 
-class AllNotification(ViewSet):
+class AllNotification(ListModelMixin, GenericViewSet):
     serializer_class = NotificationSerializer
 
-    def list(self, request, *args, **kwargs):
-        queryset = Notification.objects.filter(recipient_id=request.user.id)
-        return Response(NotificationSerializer(queryset, many=True).data)
+    def get_queryset(self, *args, **kwargs):
+        return Notification.objects.filter(recipient_id=self.request.user.id)
 
 
 class UnreadNotificationCount(APIView):

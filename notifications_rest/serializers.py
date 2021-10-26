@@ -1,8 +1,10 @@
-from rest_framework.serializers import ModelSerializer, RelatedField
-from rest_framework import serializers
-from notifications.models import Notification
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+
+from notifications.models import Notification
+
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer, Serializer
 
 UserModel = get_user_model()
 
@@ -12,29 +14,54 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = UserModel
-        fields = ['id', ]
+        fields = ['id']
 
 
-class ContentTypeSerializer(ModelSerializer):
+class GenericSerializer(Serializer):
+    pk = serializers.SerializerMethodField()
+    content_type_name = serializers.SerializerMethodField()
+    content_type_model = serializers.SerializerMethodField()
+    content_type_app = serializers.SerializerMethodField()
+    content_type_id = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+    string = serializers.SerializerMethodField()
+
     class Meta:
-        model = ContentType
-        fields = ['app_label', 'model']
+        fields = '__all__'
 
+    def get_pk(self, obj):
+        return obj.pk
 
-class GenericNotificationRelatedField(RelatedField):
+    def get_obj_content_type(self, obj):
+        if not hasattr(self, 'obj_content_type'):
+            self.obj_content_type = ContentType.objects.get_for_model(obj)
+        return self.obj_content_type
 
-    def to_representation(self, value):
-        if isinstance(value, UserModel):
-            serializer = UserSerializer(value)
-        if isinstance(value, ContentType):
-            serializer = ContentTypeSerializer(value)
+    def get_content_type_app(self, obj):
+        return self.get_obj_content_type(obj).app_label
 
-        return serializer.data
+    def get_content_type_model(self, obj):
+        return self.get_obj_content_type(obj).model
+
+    def get_content_type_name(self, obj):
+        return self.get_obj_content_type(obj).name
+
+    def get_content_type_id(self, obj):
+        return self.get_obj_content_type(obj).id
+
+    def get_string(self, obj):
+        return obj.__str__()
+
+    def get_url(self, obj):
+        try:
+            return obj.get_absolute_url()
+        except AttributeError:
+            return ''
 
 
 class NotificationSerializer(ModelSerializer):
     recipient = UserSerializer()
-    actor = UserSerializer()
+    actor = GenericSerializer()
     verb = serializers.CharField()
     level = serializers.CharField()
     description = serializers.CharField()
@@ -43,11 +70,15 @@ class NotificationSerializer(ModelSerializer):
     public = serializers.BooleanField()
     deleted = serializers.BooleanField()
     emailed = serializers.BooleanField()
+    target = GenericSerializer()
+    action_object = GenericSerializer()
+    string = serializers.CharField(source="__str__")
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'actor', 'target', 'verb', 'level', 'description', 'unread', 'public', 'deleted',
-                  'emailed', 'timestamp']
+        fields = ['id', 'recipient', 'actor', 'target', 'verb', 'action_object', 'level',
+                  'description', 'unread', 'public', 'deleted',
+                  'emailed', 'timestamp', 'string']
 
     def create(self, validated_data):
         recipient_data = validated_data.pop('recipient')
