@@ -6,8 +6,8 @@
 Requirements
 ============
 
-- Python 3.5, 3.6, 3.7, 3.8
-- Django 2.2, 3.0, 3.1
+- Python 3.8 - 3.11
+- Django 4.2 - 5.0
 - django-notifications-hq latest version
 - djangorestframework latest version
 
