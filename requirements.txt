@@ -1,0 +1,5 @@
+Django>=3.2
+djangorestframework
+django-notifications-hq
+pytest
+pytest-django

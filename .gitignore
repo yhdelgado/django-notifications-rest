@@ -4,6 +4,10 @@
 /db.sqlite3
 /django_notifications_rest.egg-info/
 /dist/
+*.swp
+*.orig
+*__pycache__*
+.coverage
 /build/lib/djangotools/
 /build/lib/notifications_rest/django_notifications_rest.egg-info/
 /build/
