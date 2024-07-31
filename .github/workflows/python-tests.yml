@@ -43,6 +43,16 @@ jobs:
         pip install codecov
         pip install --pre "django==${{ matrix.django-version }}"
         pip install -r requirements.txt
+        pip install black isort flake8
+
+    - name: Run Black
+      run: black --check .
+
+    - name: Run isort
+      run: isort --check-only .
+
+    - name: Run flake8
+      run: flake8 .
 
     - name: Run tests
       run: |

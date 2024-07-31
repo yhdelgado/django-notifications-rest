@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
-from django.urls.exceptions import NoReverseMatch
+from django.urls import reverse
 from notifications.models import Notification
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -40,9 +39,7 @@ class NotificationTests(APITestCase):
         self.assertFalse(self.notification.unread)
 
     def test_mark_as_read(self):
-        url = reverse(
-            "notifications_rest:mark_as_read", kwargs={"slug": self.notification.id}
-        )
+        url = reverse("notifications_rest:mark_as_read", kwargs={"slug": self.notification.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.notification.refresh_from_db()
@@ -51,18 +48,14 @@ class NotificationTests(APITestCase):
     def test_mark_as_unread(self):
         self.notification.unread = False
         self.notification.save()
-        url = reverse(
-            "notifications_rest:mark_as_unread", kwargs={"slug": self.notification.id}
-        )
+        url = reverse("notifications_rest:mark_as_unread", kwargs={"slug": self.notification.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.notification.refresh_from_db()
         self.assertTrue(self.notification.unread)
 
     def test_delete_notification(self):
-        url = reverse(
-            "notifications_rest:delete", kwargs={"slug": self.notification.id}
-        )
+        url = reverse("notifications_rest:delete", kwargs={"slug": self.notification.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(Notification.objects.filter(id=self.notification.id).exists())
