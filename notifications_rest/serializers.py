@@ -1,8 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-
 from notifications.models import Notification
-
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, Serializer
 
@@ -14,7 +12,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = UserModel
-        fields = ['id']
+        fields = ["id"]
 
 
 class GenericSerializer(Serializer):
@@ -27,12 +25,12 @@ class GenericSerializer(Serializer):
     string = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        fields = '__all__'
+        fields = "__all__"
 
     def get_obj(self, data):
-        content_type = ContentType.objects.get(id=data['content_type_id'])
+        content_type = ContentType.objects.get(id=data["content_type_id"])
         model_class = content_type.model_class()
-        return model_class.objects.get(pk=data['pk'])
+        return model_class.objects.get(pk=data["pk"])
 
     def to_internal_value(self, data):
         return self.get_obj(data)
@@ -41,7 +39,7 @@ class GenericSerializer(Serializer):
         return obj.pk
 
     def get_obj_content_type(self, obj):
-        if not hasattr(self, 'obj_content_type'):
+        if not hasattr(self, "obj_content_type"):
             self.obj_content_type = ContentType.objects.get_for_model(obj)
         return self.obj_content_type
 
@@ -64,7 +62,7 @@ class GenericSerializer(Serializer):
         try:
             return obj.get_absolute_url()
         except AttributeError:
-            return ''
+            return ""
 
 
 class NotificationSerializer(ModelSerializer):
@@ -84,12 +82,25 @@ class NotificationSerializer(ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'actor', 'target', 'verb', 'action_object', 'level',
-                  'description', 'unread', 'public', 'deleted',
-                  'emailed', 'timestamp', 'string']
+        fields = [
+            "id",
+            "recipient",
+            "actor",
+            "target",
+            "verb",
+            "action_object",
+            "level",
+            "description",
+            "unread",
+            "public",
+            "deleted",
+            "emailed",
+            "timestamp",
+            "string",
+        ]
 
     def create(self, validated_data):
-        recipient_data = validated_data.pop('recipient')
-        recipient = UserModel.objects.get_or_create(id=recipient_data['id'])
+        recipient_data = validated_data.pop("recipient")
+        recipient = UserModel.objects.get_or_create(id=recipient_data["id"])
         notification = Notification.objects.create(recipient=recipient[0], **validated_data)
         return notification

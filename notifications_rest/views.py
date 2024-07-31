@@ -1,11 +1,12 @@
-from rest_framework.response import Response
-from rest_framework import viewsets, status
+from notifications.models import Notification
+from rest_framework import status, viewsets
 from rest_framework.generics import CreateAPIView
 from rest_framework.mixins import ListModelMixin
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+
 from .serializers import NotificationSerializer
-from notifications.models import Notification
 
 
 class UnreadNotificationsList(ListModelMixin, GenericViewSet):
@@ -21,12 +22,12 @@ class MarkAllAsRead(APIView):
     def get(self, request, format=None):
         queryset = Notification.objects.filter(recipient_id=request.user.id, unread=True)
         queryset.update(unread=False)
-        return Response({'code': 'OK'}, status=status.HTTP_200_OK)
+        return Response({"code": "OK"}, status=status.HTTP_200_OK)
 
 
 class NotificationMixin:
     def get_obj(self, request, *args, **kwargs):
-        notification_id = kwargs.get('slug')
+        notification_id = kwargs.get("slug")
         queryset = Notification.objects.filter(recipient=request.user)
         return queryset.get(id=notification_id)
 
@@ -38,7 +39,7 @@ class MarkAsRead(NotificationMixin, APIView):
         notification_obj = self.get_obj(request, *args, **kwargs)
         notification_obj.unread = False
         notification_obj.save()
-        return Response({'code': 'OK'}, status=status.HTTP_200_OK)
+        return Response({"code": "OK"}, status=status.HTTP_200_OK)
 
 
 class MarkAsUnread(NotificationMixin, APIView):
@@ -48,7 +49,7 @@ class MarkAsUnread(NotificationMixin, APIView):
         notification_obj = self.get_obj(request, *args, **kwargs)
         notification_obj.unread = True
         notification_obj.save()
-        return Response({'code': 'OK'}, status=status.HTTP_200_OK)
+        return Response({"code": "OK"}, status=status.HTTP_200_OK)
 
 
 class Delete(NotificationMixin, APIView):
@@ -57,7 +58,7 @@ class Delete(NotificationMixin, APIView):
     def delete(self, request, *args, **kwargs):
         notification_obj = self.get_obj(request, *args, **kwargs)
         notification_obj.delete()
-        return Response({'code': 'OK'}, status=status.HTTP_200_OK)
+        return Response({"code": "OK"}, status=status.HTTP_200_OK)
 
 
 class AddNotification(CreateAPIView):
@@ -81,9 +82,7 @@ class UnreadNotificationCount(APIView):
     def get(self, request, *args, **kwargs):
         queryset = Notification.objects.filter(recipient_id=request.user.id, unread=True)
         count = queryset.count()
-        data = {
-            'unread_count': count
-        }
+        data = {"unread_count": count}
         return Response(data)
 
 
@@ -93,9 +92,7 @@ class AllNotificationCount(APIView):
     def get(self, request, *args, **kwargs):
         queryset = Notification.objects.filter(recipient_id=request.user.id)
         count = queryset.count()
-        data = {
-            'all_count': count
-        }
+        data = {"all_count": count}
         return Response(data)
 
 
