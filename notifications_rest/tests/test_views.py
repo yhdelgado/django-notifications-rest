@@ -90,13 +90,13 @@ class NotificationTests(APITestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_get_unread_notification_count(self):
-        url = reverse("notifications_rest:live_unread_notification_count")
+        url = reverse("notifications_rest:unread_notification_count")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["unread_count"], 1)
 
     def test_get_all_notification_count(self):
-        url = reverse("notifications_rest:live_all_notification_count")
+        url = reverse("notifications_rest:all_notification_count")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["all_count"], 1)
