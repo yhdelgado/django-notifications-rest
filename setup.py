@@ -23,6 +23,7 @@ setup(
     version=version,
     description="A django notifications package exposed through API Rest",
     long_description=open("README.md").read(),
+    long_description_content_type='text/markdown',
     author="Yusniel Hidalgo Delgado",
     author_email="yhidalgo86@gmail.com",
     url="https://github.com/yhdelgado/django-notifications-rest",
