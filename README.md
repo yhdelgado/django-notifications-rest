@@ -61,3 +61,10 @@ Additional options:
 -------------------
 
 There is also ``/add/`` API endpoint to add new notifications. Such endpoint might be considered security risk, as any user can add any notifications. For that reason, it must be manually enabled by setting ``NOTIFICATIONS_API_ALLOW_ADD=True``
+
+## `django-notifications-rest` Team
+
+Core contributors (in alphabetical order):
+
+-   [Petr Dlouhý](https://github.com/PetrDlouhy)
+-   [Yusniel Hidalgo Delgado](https://github.com/yhdelgado)
