@@ -6,15 +6,16 @@
 Requirements
 ============
 
-- Python 3.8 - 3.11
-- Django 4.2 - 5.0
-- django-notifications-hq latest version
+- Python 3.11 - 3.14
+- Django 5.2 - 6.1
+- [django-notifications-community](https://github.com/django-notifications-community/django-notifications-community) latest version.
+  It is a drop-in fork of ``django-notifications-hq``, whose last PyPI release (1.8.3) does not run on Django 5.1+ or Python 3.12+.
 - djangorestframework latest version
 
 Installation
 ============
 
-Installation using ``pip``. You need to manually install the required ``django-notifications-hq`` and ``djangorestframework`` packages.
+Installation using ``pip``. You need to manually install the required ``django-notifications-community`` and ``djangorestframework`` packages.
     
     $ pip install django-notifications-rest
 
