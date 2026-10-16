@@ -108,5 +108,9 @@ class AllNotificationCount(APIView):
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
     queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        return super().get_queryset().filter(recipient=self.request.user)
