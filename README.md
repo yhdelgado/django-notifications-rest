@@ -63,6 +63,8 @@ Additional options:
 
 There is also ``/add/`` API endpoint to add new notifications. Such endpoint might be considered security risk, as any user can add any notifications. For that reason, it must be manually enabled by setting ``NOTIFICATIONS_API_ALLOW_ADD=True``
 
+The ``recipient`` must be an existing user. ``actor``, ``target`` and ``action_object`` are given as ``{"content_type_id": ..., "pk": ...}``; each must be the requesting user, or an object of a model the requesting user has Django's ``view`` permission for (superusers have all permissions). Anything else is rejected with 400, the same as an object that does not exist.
+
 ## `django-notifications-rest` Team
 
 Core contributors (in alphabetical order):
