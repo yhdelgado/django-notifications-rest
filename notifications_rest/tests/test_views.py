@@ -92,14 +92,13 @@ class NotificationTests(APITestCase):
         foreign.refresh_from_db()
         self.assertTrue(foreign.unread)
 
-    def test_add_notification_minimal(self):
-        url = reverse("notifications_rest:add")
-        data = {
+    def reference(self, obj):
+        return {"pk": obj.pk, "content_type_id": ContentType.objects.get_for_model(obj).id}
+
+    def add_payload(self, **overrides):
+        payload = {
             "recipient": {"id": self.user.id},
-            "actor": {
-                "pk": self.user.id,
-                "content_type_id": ContentType.objects.get_for_model(self.user).id,
-            },
+            "actor": self.reference(self.user),
             "verb": "new",
             "description": "new notification",
             "unread": True,
@@ -108,35 +107,18 @@ class NotificationTests(APITestCase):
             "level": "1",
             "emailed": False,
         }
-        response = self.client.post(url, data, format="json")
+        return {**payload, **overrides}
+
+    def test_add_notification_minimal(self):
+        url = reverse("notifications_rest:add")
+        response = self.client.post(url, self.add_payload(), format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["recipient"]["id"], self.user.id)
         self.assertEqual(Notification.objects.count(), 2)
 
     def test_add_notification_full(self):
         url = reverse("notifications_rest:add")
-        data = {
-            "recipient": {"id": self.user.id},
-            "actor": {
-                "pk": self.user.id,
-                "content_type_id": ContentType.objects.get_for_model(self.user).id,
-            },
-            "verb": "new",
-            "description": "new notification",
-            "unread": True,
-            "public": False,
-            "deleted": False,
-            "level": "1",
-            "emailed": False,
-            "target": {
-                "pk": self.user.id,
-                "content_type_id": ContentType.objects.get_for_model(self.user).id,
-            },
-            "action_object": {
-                "pk": self.user.id,
-                "content_type_id": ContentType.objects.get_for_model(self.user).id,
-            },
-        }
+        data = self.add_payload(target=self.reference(self.user), action_object=self.reference(self.user))
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["recipient"]["id"], self.user.id)
@@ -172,6 +154,31 @@ class NotificationTests(APITestCase):
                     if item["id"] in expected
                 }
                 self.assertEqual(actual, expected)
+
+    def test_anonymous_requests_are_rejected(self):
+        self.client.logout()
+        slug = {"slug": self.notification.id}
+        requests = (
+            ("get", "all", {}),
+            ("get", "unread", {}),
+            ("get", "unread_notification_count", {}),
+            ("get", "all_notification_count", {}),
+            ("get", "mark_all_as_read", {}),
+            ("get", "mark_as_read", slug),
+            ("get", "mark_as_unread", slug),
+            ("delete", "delete", slug),
+        )
+        for method, name, kwargs in requests:
+            with self.subTest(view=name):
+                response = getattr(self.client, method)(reverse(f"notifications_rest:{name}", kwargs=kwargs))
+                self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertQuerySetEqual(Notification.objects.values_list("id", "unread"), [(self.notification.id, True)])
+
+    def test_anonymous_add_is_rejected(self):
+        self.client.logout()
+        response = self.client.post(reverse("notifications_rest:add"), self.add_payload(), format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Notification.objects.count(), 1)
 
     def test_get_unread_notification_count(self):
         url = reverse("notifications_rest:unread_notification_count")
