@@ -3,6 +3,7 @@ from notifications.models import Notification
 from rest_framework import status, viewsets
 from rest_framework.generics import CreateAPIView
 from rest_framework.mixins import ListModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -11,6 +12,7 @@ from .serializers import NotificationSerializer
 
 
 class UnreadNotificationsList(ListModelMixin, GenericViewSet):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get_queryset(self, *args, **kwargs):
@@ -18,6 +20,7 @@ class UnreadNotificationsList(ListModelMixin, GenericViewSet):
 
 
 class MarkAllAsRead(APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get(self, request, format=None):
@@ -34,6 +37,7 @@ class NotificationMixin:
 
 
 class MarkAsRead(NotificationMixin, APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get(self, request, *args, **kwargs):
@@ -44,6 +48,7 @@ class MarkAsRead(NotificationMixin, APIView):
 
 
 class MarkAsUnread(NotificationMixin, APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get(self, request, *args, **kwargs):
@@ -54,6 +59,7 @@ class MarkAsUnread(NotificationMixin, APIView):
 
 
 class Delete(NotificationMixin, APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def delete(self, request, *args, **kwargs):
@@ -63,6 +69,7 @@ class Delete(NotificationMixin, APIView):
 
 
 class AddNotification(CreateAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def create(self, request, *args, **kwargs):
@@ -71,6 +78,7 @@ class AddNotification(CreateAPIView):
 
 
 class AllNotification(ListModelMixin, GenericViewSet):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get_queryset(self, *args, **kwargs):
@@ -78,6 +86,7 @@ class AllNotification(ListModelMixin, GenericViewSet):
 
 
 class UnreadNotificationCount(APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get(self, request, *args, **kwargs):
@@ -88,6 +97,7 @@ class UnreadNotificationCount(APIView):
 
 
 class AllNotificationCount(APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get(self, request, *args, **kwargs):
