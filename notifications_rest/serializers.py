@@ -39,9 +39,7 @@ class GenericSerializer(Serializer):
         return obj.pk
 
     def get_obj_content_type(self, obj):
-        if not hasattr(self, "obj_content_type"):
-            self.obj_content_type = ContentType.objects.get_for_model(obj)
-        return self.obj_content_type
+        return ContentType.objects.get_for_model(obj)
 
     def get_content_type_app(self, obj):
         return self.get_obj_content_type(obj).app_label

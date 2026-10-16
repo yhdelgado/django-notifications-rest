@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from notifications.models import Notification
@@ -6,6 +7,18 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 User = get_user_model()
+
+
+CONTENT_TYPE_KEYS = ("content_type_id", "content_type_app", "content_type_model", "content_type_name")
+
+
+def content_type_fields(content_type):
+    values = (content_type.id, content_type.app_label, content_type.model, content_type.name)
+    return dict(zip(CONTENT_TYPE_KEYS, values))
+
+
+def serialized_content_type(serialized_object):
+    return {key: serialized_object[key] for key in CONTENT_TYPE_KEYS}
 
 
 class NotificationTests(APITestCase):
@@ -115,6 +128,31 @@ class NotificationTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
+
+    def test_lists_give_each_object_its_own_content_type(self):
+        group = Group.objects.create(name="testgroup")
+        user_type = content_type_fields(ContentType.objects.get_for_model(User))
+        group_type = content_type_fields(ContentType.objects.get_for_model(Group))
+        by_group = Notification.objects.create(
+            recipient=self.user, actor=group, target=self.user, action_object=group, verb="mixed"
+        )
+        by_user = Notification.objects.create(
+            recipient=self.user, actor=self.user, target=group, action_object=self.user, verb="mixed"
+        )
+        expected = {
+            by_group.id: {"actor": group_type, "target": user_type, "action_object": group_type},
+            by_user.id: {"actor": user_type, "target": group_type, "action_object": user_type},
+        }
+        for name in ("all", "unread"):
+            with self.subTest(view=name):
+                response = self.client.get(reverse(f"notifications_rest:{name}"))
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                actual = {
+                    item["id"]: {field: serialized_content_type(item[field]) for field in expected[item["id"]]}
+                    for item in response.data
+                    if item["id"] in expected
+                }
+                self.assertEqual(actual, expected)
 
     def test_get_unread_notification_count(self):
         url = reverse("notifications_rest:unread_notification_count")
