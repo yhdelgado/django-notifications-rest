@@ -1,5 +1,5 @@
-Django>=3.2
+Django>=5.2
 djangorestframework
-django-notifications-hq
+django-notifications-community
 pytest
 pytest-django
