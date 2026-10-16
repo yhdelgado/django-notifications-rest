@@ -30,7 +30,7 @@ setup(
     url="https://github.com/yhdelgado/django-notifications-rest",
     include_package_data=True,
     exclude_package_data={"": ["djangotools", "django_notifications_rest.egg-info"]},
-    packages=setuptools.find_packages(exclude=["djangotools"]),
+    packages=setuptools.find_packages(exclude=["test_project", "test_project.*"]),
     python_requires=">=3.11",
     install_requires=[],
     classifiers=[
