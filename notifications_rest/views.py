@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from notifications.models import Notification
 from rest_framework import status, viewsets
 from rest_framework.generics import CreateAPIView
@@ -29,7 +30,7 @@ class NotificationMixin:
     def get_obj(self, request, *args, **kwargs):
         notification_id = kwargs.get("slug")
         queryset = Notification.objects.filter(recipient=request.user)
-        return queryset.get(id=notification_id)
+        return get_object_or_404(queryset, id=notification_id)
 
 
 class MarkAsRead(NotificationMixin, APIView):

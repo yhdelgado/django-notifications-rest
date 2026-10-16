@@ -60,6 +60,25 @@ class NotificationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(Notification.objects.filter(id=self.notification.id).exists())
 
+    def assert_actions_not_found(self, notification_id):
+        for method, name in (("get", "mark_as_read"), ("get", "mark_as_unread"), ("delete", "delete")):
+            with self.subTest(view=name):
+                url = reverse(f"notifications_rest:{name}", kwargs={"slug": notification_id})
+                response = getattr(self.client, method)(url)
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_actions_on_missing_notification_are_not_found(self):
+        missing_id = self.notification.id
+        self.notification.delete()
+        self.assert_actions_not_found(missing_id)
+
+    def test_actions_on_other_users_notification_are_not_found(self):
+        other_user = User.objects.create_user(username="otheruser", password="testpass")
+        foreign = Notification.objects.create(recipient=other_user, actor=other_user, verb="test", unread=True)
+        self.assert_actions_not_found(foreign.id)
+        foreign.refresh_from_db()
+        self.assertTrue(foreign.unread)
+
     def test_add_notification_minimal(self):
         url = reverse("notifications_rest:add")
         data = {
