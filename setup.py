@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Django notifications rest setup file for pip package """
+"""Django notifications rest setup file for pip package"""
+
 import ast
 import re
 
