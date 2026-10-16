@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Max
 from django.urls import reverse
 from notifications.models import Notification
 from rest_framework import status
@@ -123,6 +124,73 @@ class NotificationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["recipient"]["id"], self.user.id)
         self.assertEqual(Notification.objects.count(), 2)
+
+    def post_add(self, **overrides):
+        return self.client.post(reverse("notifications_rest:add"), self.add_payload(**overrides), format="json")
+
+    def test_add_rejects_an_unknown_recipient(self):
+        users_before = User.objects.count()
+        missing_id = User.objects.aggregate(Max("id"))["id__max"] + 1
+        response = self.post_add(recipient={"id": missing_id})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("recipient", response.data)
+        self.assertEqual(User.objects.count(), users_before)
+        self.assertEqual(Notification.objects.count(), 1)
+
+    def test_add_rejects_objects_the_user_may_not_view(self):
+        other_user = User.objects.create_user(username="otheruser", password="testpass")
+        group = Group.objects.create(name="secretgroup")
+        missing = {
+            "pk": User.objects.aggregate(Max("id"))["id__max"] + 1,
+            "content_type_id": self.reference(self.user)["content_type_id"],
+        }
+        for field in ("actor", "target", "action_object"):
+            for obj in (other_user, group):
+                with self.subTest(field=field, obj=obj):
+                    response = self.post_add(**{field: self.reference(obj)})
+                    self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                    self.assertNotContains(response, str(obj), status_code=status.HTTP_400_BAD_REQUEST)
+                    self.assertEqual(response.data, self.post_add(**{field: missing}).data)
+        self.assertEqual(Notification.objects.count(), 1)
+
+    def test_add_accepts_objects_the_user_may_view(self):
+        other_user = User.objects.create_user(username="otheruser", password="testpass")
+        group = Group.objects.create(name="visiblegroup")
+        self.user.user_permissions.add(
+            Permission.objects.get(codename="view_user", content_type__app_label="auth"),
+            Permission.objects.get(codename="view_group", content_type__app_label="auth"),
+        )
+        response = self.post_add(
+            recipient={"id": other_user.id},
+            actor=self.reference(other_user),
+            target=self.reference(group),
+            action_object=self.reference(self.user),
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        notification = Notification.objects.get(id=response.data["id"])
+        self.assertEqual(
+            (notification.recipient, notification.actor, notification.target, notification.action_object),
+            (other_user, other_user, group, self.user),
+        )
+
+    def test_add_rejects_malformed_references(self):
+        user_type_id = self.reference(self.user)["content_type_id"]
+        removed_type = ContentType.objects.create(app_label="removed_app", model="removedmodel")
+        malformed = {
+            "not an object": "user",
+            "no content_type_id": {"pk": self.user.pk},
+            "no pk": {"content_type_id": user_type_id},
+            "content_type_id not a number": {"content_type_id": "user", "pk": self.user.pk},
+            "unknown content_type_id": {"content_type_id": removed_type.id + 1, "pk": self.user.pk},
+            "content type without a model": {"content_type_id": removed_type.id, "pk": self.user.pk},
+            "pk of the wrong type": {"content_type_id": user_type_id, "pk": "not-a-number"},
+        }
+        for case, reference in malformed.items():
+            with self.subTest(case=case):
+                response = self.post_add(actor=reference)
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("actor", response.data)
+        self.assertEqual(Notification.objects.count(), 1)
 
     def test_get_all_notifications(self):
         url = reverse("notifications_rest:all")

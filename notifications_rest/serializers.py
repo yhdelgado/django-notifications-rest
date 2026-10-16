@@ -1,7 +1,9 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_permission_codename, get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError as DjangoValidationError
 from notifications.models import Notification
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
 
 UserModel = get_user_model()
@@ -15,7 +17,16 @@ class UserSerializer(ModelSerializer):
         fields = ["id"]
 
 
+class ObjectReferenceSerializer(Serializer):
+    content_type_id = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.all())
+    pk = serializers.CharField()
+
+
 class GenericSerializer(Serializer):
+    default_error_messages = {
+        "no_object": "No object that you may view has this content_type_id and pk.",
+    }
+
     pk = serializers.SerializerMethodField()
     content_type_name = serializers.SerializerMethodField(read_only=True)
     content_type_model = serializers.SerializerMethodField(read_only=True)
@@ -28,9 +39,24 @@ class GenericSerializer(Serializer):
         fields = "__all__"
 
     def get_obj(self, data):
-        content_type = ContentType.objects.get(id=data["content_type_id"])
-        model_class = content_type.model_class()
-        return model_class.objects.get(pk=data["pk"])
+        reference = ObjectReferenceSerializer(data=data)
+        reference.is_valid(raise_exception=True)
+        model_class = reference.validated_data["content_type_id"].model_class()
+        if model_class is None:
+            self.fail("no_object")
+        try:
+            pk = model_class._meta.pk.to_python(reference.validated_data["pk"])
+        except DjangoValidationError:
+            self.fail("no_object")
+        obj = model_class._default_manager.filter(pk=pk).first()
+        if obj is None or not self.may_reference(obj):
+            self.fail("no_object")
+        return obj
+
+    def may_reference(self, obj):
+        user = self.context["request"].user
+        view_permission = f"{obj._meta.app_label}.{get_permission_codename('view', obj._meta)}"
+        return obj == user or user.has_perm(view_permission)
 
     def to_internal_value(self, data):
         return self.get_obj(data)
@@ -97,8 +123,11 @@ class NotificationSerializer(ModelSerializer):
             "string",
         ]
 
+    def validate_recipient(self, value):
+        recipient = UserModel._default_manager.filter(id=value["id"]).first()
+        if recipient is None:
+            raise ValidationError("No user has this id.")
+        return recipient
+
     def create(self, validated_data):
-        recipient_data = validated_data.pop("recipient")
-        recipient = UserModel.objects.get_or_create(id=recipient_data["id"])
-        notification = Notification.objects.create(recipient=recipient[0], **validated_data)
-        return notification
+        return Notification.objects.create(**validated_data)
